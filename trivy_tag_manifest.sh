@@ -2,11 +2,14 @@
 
 set -e
 
-# set expected major.minor tags
-EXPECTED_TAGS="0.21 0.20 0.19 0.18 0.17"
+# query for the github releases
+GITHUB_TAGS="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/tags?per_page=50")"
 
-# get last 100 release tags from GitHub
-TRIVY_RELEASES="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/tags?per_page=100" | jq -r '.[] | .name' | sort --version-sort -r)"
+# get the last five major.minor tags
+EXPECTED_TAGS="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 5)"
+
+# get full tag name, sorted by version so we can extract the latest major.minor.bugfix tag
+TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
 
 # loop through each tag
 for EXPECTED_TAG in ${EXPECTED_TAGS}
