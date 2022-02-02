@@ -8,6 +8,9 @@ GITHUB_TAGS="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/tag
 # get the last five major.minor tags
 EXPECTED_TAGS="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 5)"
 
+# get the latest tag
+LATEST_MAJOR_MINOR_TAG="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 1)"
+
 # get full tag name, sorted by version so we can extract the latest major.minor.bugfix tag
 TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
 
@@ -78,6 +81,13 @@ do
   echo "Clearing existing manifests, create new manifest and push to Docker Hub..."
   docker manifest rm "mbentley/trivy:${MAJOR_MINOR_TAG}" || true
   docker manifest create "mbentley/trivy:${MAJOR_MINOR_TAG}" --amend "aquasec/trivy@${TAG_DIGEST}"
+  if [ "${MAJOR_MINOR_TAG}" == "${LATEST_MAJOR_MINOR_TAG}" ]
+  then
+    # also tag this as latest
+    docker manifest rm "mbentley/trivy:latest" || true
+    docker manifest create "mbentley/trivy:latest" --amend "aquasec/trivy@${TAG_DIGEST}"
+    docker manifest push --purge "mbentley/trivy:latest"
+  fi
   docker manifest push --purge "mbentley/trivy:${MAJOR_MINOR_TAG}"
 
   echo -e "done\n"
