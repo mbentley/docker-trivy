@@ -8,11 +8,11 @@ For an up to date list of tags, please refer to the [Docker Hub tags list](https
 
 ### `mbentley/trivy`
 
-* `latest`, `0.26`
+* `latest`, `0.27`
+* `0.26`
 * `0.25`
 * `0.24`
 * `0.23`
-* `0.22`
 
 **Note**: The `latest` tag will always be the same as the newest `major.minor` tag.
 
