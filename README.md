@@ -8,7 +8,8 @@ For an up to date list of tags, please refer to the [Docker Hub tags list](https
 
 ### `mbentley/trivy`
 
-* `latest`, `0.27`
+* `latest`, `0.28`
+* `0.27`
 * `0.26`
 * `0.25`
 * `0.24`
