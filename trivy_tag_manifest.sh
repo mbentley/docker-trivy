@@ -73,7 +73,7 @@ tag_manifest() {
   if [ "${MAJOR_MINOR_TAG}" == "${LATEST_MAJOR_MINOR_TAG}" ]
   then
     # also tag this as latest
-    docker manifest rm "mbentley/trivy:latest" || true
+    docker manifest rm "mbentley/trivy:latest" 2>/dev/null || true
     docker manifest create "mbentley/trivy:latest" --amend "aquasec/trivy@${TAG_DIGEST}"
     docker manifest push --purge "mbentley/trivy:latest"
   fi
