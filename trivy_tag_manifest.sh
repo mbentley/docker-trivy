@@ -2,21 +2,10 @@
 
 set -e
 
-# query for the github releases
-GITHUB_TAGS="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/tags?per_page=50")"
+tag_manifest() {
+  # get expected tag from first argument
+  EXPECTED_TAG="${1}"
 
-# get the last five major.minor tags
-EXPECTED_TAGS="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 5)"
-
-# get the latest tag
-LATEST_MAJOR_MINOR_TAG="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 1)"
-
-# get full tag name, sorted by version so we can extract the latest major.minor.bugfix tag
-TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
-
-# loop through each tag
-for EXPECTED_TAG in ${EXPECTED_TAGS}
-do
   # get latest full version from GitHub releases
   echo -n "Getting full version for ${EXPECTED_TAG} from GitHub releases..."
   TRIVY_VERSION="$(echo "${TRIVY_RELEASES}" | grep "^v${EXPECTED_TAG}\." | head -n 1)"
@@ -91,4 +80,23 @@ do
   docker manifest push --purge "mbentley/trivy:${MAJOR_MINOR_TAG}"
 
   echo -e "done\n"
-done
+}
+
+# query for the github releases
+GITHUB_TAGS="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/tags?per_page=50")"
+
+# get the last five major.minor tags
+EXPECTED_TAGS="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 5)"
+
+# get the latest tag
+LATEST_MAJOR_MINOR_TAG="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 1)"
+
+# get full tag name, sorted by version so we can extract the latest major.minor.bugfix tag
+TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
+
+# load env_parallel
+. "$(which env_parallel.bash)"
+
+# run multiple scans in parallel
+# shellcheck disable=SC2086
+env_parallel -j 5 tag_manifest ::: ${EXPECTED_TAGS}
