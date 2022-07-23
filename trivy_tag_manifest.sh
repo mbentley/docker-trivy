@@ -95,7 +95,7 @@ LATEST_MAJOR_MINOR_TAG="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v'
 TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
 
 # load env_parallel
-. "$(which env_parallel.bash)"
+. "$(command -v env_parallel.bash)"
 
 # run multiple scans in parallel
 # shellcheck disable=SC2086
