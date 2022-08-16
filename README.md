@@ -10,7 +10,8 @@ For an up to date list of tags, please refer to the [Docker Hub tags list](https
 
 #### Current Tags
 
-* `latest`, `0.30`
+* `latest`, `0.31`
+* `0.30`
 * `0.29`
 * `0.28`
 * `0.27`
