@@ -38,7 +38,7 @@ tag_manifest() {
 
   # get digest for image
   echo -n "Getting digest for aquasec/trivy:${TRIMMED_TAG} from Docker Hub..."
-  TAG_DIGEST="$(docker manifest inspect "aquasec/trivy:${TRIMMED_TAG}" | jq -r '.manifests | .[] | select((.platform.architecture == "amd64") and (.platform.os == "linux")) | .digest')"
+  TAG_DIGEST="$(docker buildx imagetools inspect --raw "aquasec/trivy:${TRIMMED_TAG}" | jq -r '.manifests | .[] | select((.platform.architecture == "amd64") and (.platform.os == "linux")) | .digest')"
 
   # check to see if we got a tag digest
   if [ -z "${TAG_DIGEST}" ]
@@ -66,18 +66,14 @@ tag_manifest() {
     exit 1
   fi
 
-  # clear any existing manifests, create the new manifest, and push the manifest
-  echo "Clearing existing manifests, create new manifest and push to Docker Hub..."
-  docker manifest rm "mbentley/trivy:${MAJOR_MINOR_TAG}" 2>/dev/null || true
-  docker manifest create "mbentley/trivy:${MAJOR_MINOR_TAG}" --amend "aquasec/trivy@${TAG_DIGEST}"
+  # create the new manifest and push the manifest to docker hub
+  echo -n "Create new manifest and push to Docker Hub..."
+  docker buildx imagetools create --progress plain -t "mbentley/trivy:${MAJOR_MINOR_TAG}" "aquasec/trivy@${TAG_DIGEST}"
   if [ "${MAJOR_MINOR_TAG}" == "${LATEST_MAJOR_MINOR_TAG}" ]
   then
     # also tag this as latest
-    docker manifest rm "mbentley/trivy:latest" 2>/dev/null || true
-    docker manifest create "mbentley/trivy:latest" --amend "aquasec/trivy@${TAG_DIGEST}"
-    docker manifest push --purge "mbentley/trivy:latest"
+    docker buildx imagetools create --progress plain -t "mbentley/trivy:latest" "aquasec/trivy@${TAG_DIGEST}"
   fi
-  docker manifest push --purge "mbentley/trivy:${MAJOR_MINOR_TAG}"
 
   echo -e "done\n"
 }
