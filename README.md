@@ -4,23 +4,11 @@ docker image for Trivy; direct mirror of `aquasec/trivy` images
 
 ## Image Tags
 
-For an up to date list of tags, please refer to the [Docker Hub tags list](https://hub.docker.com/r/mbentley/trivy/tags) as I only manually update this README occasionally and the script will always pull from the GitHub tags API. Other older tags may be available but this script only updates the last five. I'm not sure of the support lifecycle for each version of Trivy but they don't seem to release patches for older versions for very long.
+For an up to date list of tags, please refer to the [Docker Hub tags list](https://hub.docker.com/r/mbentley/trivy/tags). The script, which runs daily, will always pull from the GitHub tags API. Other older tags may be available but this script only updates the last five. I'm not sure of the support lifecycle for each version of Trivy but they don't seem to release patches for older versions for very long.
 
-### `mbentley/trivy`
+For example, if the `0.42` tag is the latest, I will tag it as both `latest` and `0.42` so you can always refer to a specific version by it's `major.minor` version.
 
-#### Current Tags
-
-* `latest`, `0.42`
-* `0.41`
-* `0.40`
-* `0.39`
-* `0.38`
-
-### Previous Tags
-
-* `0.17`, `0.18`, `0.19`, `0.20`, `0.21`, `0.22`, `0.23`, `0.24`, `0.25`, `0.26`, `0.27`, `0.28`, `0.29`, `0.30`, `0.31`, `0.32`, `0.33`, `0.34`, `0.35`, `0.36`, `0.37`
-
-**Note**: The `latest` tag will always be the same as the newest `major.minor` tag.
+**Note**: The `latest` tag will always be the same as the newest `major.minor` tag as that is handled automatically in the script. This is what I personally typically use unless there is a bug or a reason to pin to a specific version.
 
 ## Why
 
