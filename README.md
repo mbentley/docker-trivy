@@ -4,7 +4,7 @@ docker image for Trivy; direct mirror of `aquasec/trivy` images
 
 ## Image Tags
 
-For an up to date list of tags, please refer to the [Docker Hub tags list](https://hub.docker.com/r/mbentley/trivy/tags). The script, which runs daily, will always pull from the GitHub tags API. Other older tags may be available but this script only updates the last five. I'm not sure of the support lifecycle for each version of Trivy but they don't seem to release patches for older versions for very long.
+For an up to date list of tags, please refer to the [Docker Hub tags list](https://hub.docker.com/r/mbentley/trivy/tags). I only tag the `amd64` and `arm64` manifests as I have no needs for the others. The script, which runs daily, will always pull from the GitHub tags API. Other older tags may be available but this script only updates the last five. I'm not sure of the support lifecycle for each version of Trivy but they don't seem to release patches for older versions for very long.
 
 For example, if the `0.42` tag is the latest, I will tag it as both `latest` and `0.42` so you can always refer to a specific version by it's `major.minor` version.
 

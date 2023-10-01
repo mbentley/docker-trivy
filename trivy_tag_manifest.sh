@@ -38,12 +38,13 @@ tag_manifest() {
 
   # get digest for image
   echo -n "Getting digest for aquasec/trivy:${TRIMMED_TAG} from Docker Hub..."
-  TAG_DIGEST="$(docker buildx imagetools inspect --raw "aquasec/trivy:${TRIMMED_TAG}" | jq -r '.manifests | .[] | select((.platform.architecture == "amd64") and (.platform.os == "linux")) | .digest')"
+  AMD64_TAG_DIGEST="$(docker buildx imagetools inspect --raw "aquasec/trivy:${TRIMMED_TAG}" | jq -r '.manifests | .[] | select((.platform.architecture == "amd64") and (.platform.os == "linux")) | .digest')"
+  ARM64_TAG_DIGEST="$(docker buildx imagetools inspect --raw "aquasec/trivy:${TRIMMED_TAG}" | jq -r '.manifests | .[] | select((.platform.architecture == "arm64") and (.platform.os == "linux")) | .digest')"
 
   # check to see if we got a tag digest
-  if [ -z "${TAG_DIGEST}" ]
+  if [ -z "${AMD64_TAG_DIGEST}" ] || [ -z "${ARM64_TAG_DIGEST}" ]
   then
-    echo -e "error\nERROR: TAG_DIGEST not set!"
+    echo -e "error\nERROR: AMD64_TAG_DIGEST or ARM64_TAG_DIGEST not set!"
     exit 1
   fi
 
@@ -68,11 +69,11 @@ tag_manifest() {
 
   # create the new manifest and push the manifest to docker hub
   echo -n "Create new manifest and push to Docker Hub..."
-  docker buildx imagetools create --progress plain -t "mbentley/trivy:${MAJOR_MINOR_TAG}" "aquasec/trivy@${TAG_DIGEST}"
+  docker buildx imagetools create --progress plain -t "mbentley/trivy:${MAJOR_MINOR_TAG}" "aquasec/trivy@${AMD64_TAG_DIGEST}" "aquasec/trivy@${ARM64_TAG_DIGEST}"
   if [ "${MAJOR_MINOR_TAG}" == "${LATEST_MAJOR_MINOR_TAG}" ]
   then
     # also tag this as latest
-    docker buildx imagetools create --progress plain -t "mbentley/trivy:latest" "aquasec/trivy@${TAG_DIGEST}"
+    docker buildx imagetools create --progress plain -t "mbentley/trivy:latest" "aquasec/trivy@${AMD64_TAG_DIGEST}" "aquasec/trivy@${ARM64_TAG_DIGEST}"
   fi
 
   echo -e "done\n"
