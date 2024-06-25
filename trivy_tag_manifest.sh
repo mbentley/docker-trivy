@@ -3,6 +3,9 @@
 set -e
 
 tag_manifest() {
+  # set this again for use in parallel
+  set -e
+
   # get expected tag from first argument
   EXPECTED_TAG="${1}"
 
@@ -95,4 +98,4 @@ TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sor
 . "$(command -v env_parallel.bash)"
 
 # run multiple scans in parallel
-env_parallel -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
+env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
