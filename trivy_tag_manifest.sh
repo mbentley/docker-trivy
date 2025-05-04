@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 tag_manifest() {
   # set this again for use in parallel
@@ -95,9 +95,7 @@ LATEST_MAJOR_MINOR_TAG="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v'
 TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
 
 # load env_parallel
-. $(command -v env_parallel.bash)
+. "$(command -v env_parallel.bash)"
 
 # run multiple scans in parallel
-# shellcheck disable=SC2086
-env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
-#env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: 0.62 0.61 0.60 0.59 0.58
+env_parallel --env tag_manifest --env TRIVY_RELEASES --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
