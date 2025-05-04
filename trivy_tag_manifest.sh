@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -e
 
 tag_manifest() {
   # set this again for use in parallel
@@ -98,4 +98,5 @@ TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sor
 . "$(command -v env_parallel.bash)"
 
 # run multiple scans in parallel
-env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
+# shellcheck disable=SC2086
+env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: ${EXPECTED_TAGS}
