@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -ex
 
 tag_manifest() {
   # set this again for use in parallel
