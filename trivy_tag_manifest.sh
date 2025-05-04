@@ -99,4 +99,5 @@ TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sor
 
 # run multiple scans in parallel
 # shellcheck disable=SC2086
-env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: ${EXPECTED_TAGS}
+#env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
+env_parallel --halt soon,fail=1 -j 5 tag_manifest ::: 0.62 0.61 0.60 0.59 0.58
