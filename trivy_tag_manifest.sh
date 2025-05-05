@@ -98,4 +98,4 @@ TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sor
 . "$(command -v env_parallel.bash)"
 
 # run multiple scans in parallel
-env_parallel --env tag_manifest --env TRIVY_RELEASES --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
+env_parallel --env tag_manifest --env TRIVY_RELEASES --env LATEST_MAJOR_MINOR_TAG --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
