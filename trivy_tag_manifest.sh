@@ -13,7 +13,7 @@ tag_manifest() {
   echo -n "Getting full version for ${EXPECTED_TAG} from GitHub releases..."
   TRIVY_VERSION="$(echo "${TRIVY_RELEASES}" | grep "^v${EXPECTED_TAG}\." | head -n 1)"
 
-  # check to see if we received a trivy version from github tags
+  # check to see if we received a trivy version from github releases
   if [ -z "${TRIVY_VERSION}" ]
   then
     echo -e "error\nERROR: unable to retrieve the Trivy version from GitHub"
@@ -70,32 +70,36 @@ tag_manifest() {
     exit 1
   fi
 
-  # create the new manifest and push the manifest to docker hub
-  echo -n "Create new manifest and push to Docker Hub..."
-  docker buildx imagetools create --progress plain -t "mbentley/trivy:${MAJOR_MINOR_TAG}" "aquasec/trivy@${AMD64_TAG_DIGEST}" "aquasec/trivy@${ARM64_TAG_DIGEST}"
+  # build tag arguments
+  TAG_ARGS=("-t" "mbentley/trivy:${MAJOR_MINOR_TAG}")
   if [ "${MAJOR_MINOR_TAG}" == "${LATEST_MAJOR_MINOR_TAG}" ]
   then
-    # also tag this as latest
-    docker buildx imagetools create --progress plain -t "mbentley/trivy:latest" "aquasec/trivy@${AMD64_TAG_DIGEST}" "aquasec/trivy@${ARM64_TAG_DIGEST}"
+    TAG_ARGS+=("-t" "mbentley/trivy:latest")
   fi
 
+  # create the new manifest and push the manifest to docker hub
+  echo -n "Create new manifest and push to Docker Hub..."
+  docker buildx imagetools create --progress plain "${TAG_ARGS[@]}" "aquasec/trivy@${AMD64_TAG_DIGEST}" "aquasec/trivy@${ARM64_TAG_DIGEST}"
   echo -e "done\n"
 }
 
 # query for the github releases
-GITHUB_TAGS="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/tags?per_page=50")"
+GITHUB_RELEASES="$(wget -q -O - "https://api.github.com/repos/aquasecurity/trivy/releases?per_page=50")"
 
-# get the last five major.minor tags
-EXPECTED_TAGS="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 5)"
+# get major.minor tags sorted (run the pipeline once)
+SORTED_MAJOR_MINOR_TAGS="$(echo "${GITHUB_RELEASES}" | jq -r '.[]|.tag_name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru)"
+
+# get the last three major.minor tags
+EXPECTED_TAGS="$(echo "${SORTED_MAJOR_MINOR_TAGS}" | head -n 3)"
 
 # get the latest tag
-LATEST_MAJOR_MINOR_TAG="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | awk -F 'v' '{print $2}' | awk -F '.' '{print $1 "." $2}' | sort --version-sort -ru | head -n 1)"
+LATEST_MAJOR_MINOR_TAG="$(echo "${SORTED_MAJOR_MINOR_TAGS}" | head -n 1)"
 
 # get full tag name, sorted by version so we can extract the latest major.minor.bugfix tag
-TRIVY_RELEASES="$(echo "${GITHUB_TAGS}" | jq -r '.[]|.name' | sort --version-sort -r)"
+TRIVY_RELEASES="$(echo "${GITHUB_RELEASES}" | jq -r '.[]|.tag_name' | sort --version-sort -r)"
 
 # load env_parallel
 . "$(command -v env_parallel.bash)"
 
 # run multiple scans in parallel
-env_parallel --env tag_manifest --env TRIVY_RELEASES --env LATEST_MAJOR_MINOR_TAG --halt soon,fail=1 -j 5 tag_manifest ::: "${EXPECTED_TAGS}"
+env_parallel --env tag_manifest --env TRIVY_RELEASES --env LATEST_MAJOR_MINOR_TAG --halt soon,fail=1 -j 3 tag_manifest ::: "${EXPECTED_TAGS}"
